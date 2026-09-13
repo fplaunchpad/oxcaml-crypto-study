@@ -1,2 +1,4 @@
 (library
- (name oxcaml_crypto))
+ (name oxcaml_crypto_study)
+ (public_name oxcaml-crypto-study)
+ (modules oxcaml_crypto_study))

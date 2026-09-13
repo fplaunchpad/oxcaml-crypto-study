@@ -15,3 +15,17 @@ opam switch create oxcaml --repos ox=git+https://github.com/oxcaml/opam-reposito
 eval $(opam env)
 opam switch import opam-oxcaml.export.json
 ```
+
+### Install dependencies
+
+```sh
+opam install . --deps-only --with-test
+```
+
+### Build & test
+
+```sh
+dune build
+dune runtest
+```
+

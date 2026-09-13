@@ -1,0 +1,3 @@
+(executable
+ (name chacha20_exe)
+ (libraries chacha20))

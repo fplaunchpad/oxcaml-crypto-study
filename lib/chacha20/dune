@@ -1,0 +1,4 @@
+(library
+  (name chacha20)
+  (modules chacha20))
+

@@ -1,0 +1,8 @@
+(executable
+ (name test_chacha20)
+ (libraries chacha20 alcotest qcheck-core qcheck-alcotest)
+ (modules harness test_chacha20))
+(rule
+ (alias runtest)
+ (deps ../vectors/chacha20/quarter_round.txt)
+ (action (run %{exe:test_chacha20.exe})))

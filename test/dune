@@ -7,6 +7,7 @@
  (alias runtest)
  (deps
   ../vectors/chacha20/quarter_round.txt
-  ../vectors/chacha20/block_function.txt)
+  ../vectors/chacha20/block_function.txt
+  ../vectors/chacha20/encryption.txt)
  (action
   (run %{exe:test_chacha20.exe})))

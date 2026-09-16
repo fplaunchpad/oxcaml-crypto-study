@@ -74,3 +74,27 @@ let chacha20_block ~key ~counter ~nonce =
   done;
 
   result
+
+let encrypt ~key ~(counter:int32) ~nonce ~plaintext =
+  let len = Bytes.length plaintext in
+  let ciphertext = Bytes.create len in
+
+  (** positive integer division floors by default *)
+  for j=0 to len/64 - 1 do
+    let key_stream = chacha20_block ~key ~counter:(Int32.add counter (Int32.of_int j)) ~nonce in
+    for i=0 to 63 do
+      let buf_idx = j * 64 + i in
+      Bytes.set_int8 ciphertext buf_idx ((Bytes.get_int8 plaintext buf_idx) lxor (Bytes.get_int8 key_stream i));
+    done;
+  done;
+
+  if len mod 64 <> 0 then
+    let j = len/64 in
+    let key_stream = chacha20_block ~key ~counter:(Int32.add counter (Int32.of_int j)) ~nonce in
+    for i=0 to (len mod 64)-1 do
+      let buf_idx = j * 64 + i in
+      Bytes.set_int8 ciphertext buf_idx ((Bytes.get_int8 plaintext buf_idx) lxor (Bytes.get_int8 key_stream i));
+    done;
+  else ();
+
+  ciphertext

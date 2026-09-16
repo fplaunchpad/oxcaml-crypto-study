@@ -18,11 +18,11 @@ module Testvector_file = struct
       in parse_vectors []
     )
 
-  let format_str s = 
+  let format_str s =
     let is_hex_digit ch = (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F') || (ch >= '0' && ch <= '9') in
     String.to_seq s |> Seq.filter is_hex_digit |> String.of_seq
-  
-  let str_hex_to_bytes s = 
+
+  let str_hex_to_bytes s =
     let str = format_str s in
     let len = String.length str in
     let res = Bytes.create (len/2) in
@@ -32,7 +32,7 @@ module Testvector_file = struct
     done;
     res
 
-  let bytes_to_str_hex b = 
+  let bytes_to_str_hex b =
     let len = Bytes.length b in
     let res = Buffer.create (len * 2) in
     for i=0 to (len - 1) do

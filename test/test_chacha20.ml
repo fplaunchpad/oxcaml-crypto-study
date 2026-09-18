@@ -52,11 +52,24 @@ let test_libsodium_encryption () =
   let ciphertext = Crypto_oracles.Chacha20_stub.ietf_chacha20_encrypt ~key ~counter ~nonce ~plaintext in
   Alcotest.(check string) "encryption" expected_ciphertext (bytes_to_str_hex ciphertext)
 
+let test_differential_libsodium_ietf_encryption () =
+  QCheck.Test.make ~name:"differential test with libsodium ietf implementation" ~count:1000 Harness.Chacha20_qcheck_gen.arbitrary (fun (key, nonce, counter, plaintext) -> (
+    let custom_impl_ciphertext = Chacha20.encrypt ~key ~counter ~nonce ~plaintext in
+    let libsodium_ciphertext = Crypto_oracles.Chacha20_stub.ietf_chacha20_encrypt ~key ~counter ~nonce ~plaintext in
+    Bytes.equal custom_impl_ciphertext libsodium_ciphertext
+    )
+  )
+
 let () =
   Alcotest.run "chacha20"
-    [ ( "rfc8439-vectors"
-      , [ Alcotest.test_case "quarter_round" `Quick test_quarter_round;
+    [ ("rfc8439-vectors"
+      , [Alcotest.test_case "quarter_round" `Quick test_quarter_round;
       Alcotest.test_case "block_function" `Quick test_block_fn;
-      Alcotest.test_case "encryption" `Quick test_encryption;
-      Alcotest.test_case "libsodium reference encryption" `Slow test_libsodium_encryption] )
+      Alcotest.test_case "encryption" `Quick test_encryption]
+      );
+
+      ("differential-test-with-libsodium-ietf"
+      , [Alcotest.test_case "libsodium encryption" `Slow test_libsodium_encryption;
+      QCheck_alcotest.to_alcotest (test_differential_libsodium_ietf_encryption ())]
+      )
     ]

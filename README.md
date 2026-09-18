@@ -26,6 +26,7 @@ opam install . --deps-only --with-test
 
 ```sh
 dune build
-dune runtest
+dune runtest # this runs all the tests, including the slow differential tests comparing the libsodium implementation
+ALCOTEST_QUICK_TESTS=true dune runtest # run only the fast tests
 ```
 

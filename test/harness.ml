@@ -43,3 +43,28 @@ module Testvector_file = struct
     Buffer.contents res
 
 end
+
+module Chacha20_qcheck_gen = struct
+  let boundary_lengths = [ 0; 1; 63; 64; 65; 255; 256; 257 ]
+  let large_lengths = [ 1_048_576; 4_194_304 ]
+
+  let length_gen : int QCheck.Gen.t =
+    QCheck.Gen.(
+      oneof_weighted
+        [ (6, oneof_list boundary_lengths)
+        ; (3, int_range 0 4096)
+        ; (1, oneof_list large_lengths)
+        ])
+
+  let key_gen : bytes QCheck.Gen.t = QCheck.Gen.bytes_size (QCheck.Gen.return 32)
+  let nonce_gen : bytes QCheck.Gen.t = QCheck.Gen.bytes_size (QCheck.Gen.return 12)
+  let counter_gen : int32 QCheck.Gen.t =
+    QCheck.Gen.map Int32.of_int (QCheck.Gen.int_range 0 1_000_000)
+  let plaintext_gen : bytes QCheck.Gen.t =
+    QCheck.Gen.(length_gen >>= fun n -> bytes_size (return n))
+
+  let gen : (bytes * bytes * int32 * bytes) QCheck.Gen.t =
+    QCheck.Gen.quad key_gen nonce_gen counter_gen plaintext_gen
+
+  let arbitrary = QCheck.make gen
+end

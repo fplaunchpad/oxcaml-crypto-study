@@ -12,6 +12,7 @@ depends: [
   "alcotest" {with-test}
   "qcheck-core" {with-test}
   "qcheck-alcotest" {with-test}
+  "ctypes" {with-test}
   "odoc" {with-doc}
 ]
 build: [

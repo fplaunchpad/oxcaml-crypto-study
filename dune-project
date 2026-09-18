@@ -1,4 +1,5 @@
 (lang dune 3.24)
+(using ctypes 0.3)
 (generate_opam_files true)
 
 (package
@@ -13,4 +14,5 @@
   ocaml
   (alcotest :with-test)
   (qcheck-core :with-test)
-  (qcheck-alcotest :with-test)))
+  (qcheck-alcotest :with-test)
+  (ctypes :with-test)))

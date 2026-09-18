@@ -1,0 +1,19 @@
+; reference - https://dune.readthedocs.io/en/stable/foreign-code.html
+
+(library
+ (name crypto_oracles)
+ ; ctypes backward compatibility shims warn sometimes; suppress them
+ (flags (:standard -w -9-27))
+ (ctypes
+  (external_library_name libsodium)
+  (build_flags_resolver pkg_config)
+  (headers (include "sodium.h"))
+  (type_description
+   (instance Types)
+   (functor Type_description))
+  (function_description
+   (concurrency sequential)
+   (instance Functions)
+   (functor Function_description))
+  (generated_types Types_generated)
+  (generated_entry_point C)))

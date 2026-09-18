@@ -1,6 +1,6 @@
 (executable
  (name test_chacha20)
- (libraries chacha20 alcotest qcheck-core qcheck-alcotest)
+ (libraries chacha20 crypto_oracles alcotest qcheck-core qcheck-alcotest)
  (modules harness test_chacha20))
 
 (rule

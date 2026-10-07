@@ -1,4 +1,4 @@
 (library
   (name chacha20)
-  (modules chacha20))
+  (modules chacha20_vanilla chacha20_zero_alloc))
 

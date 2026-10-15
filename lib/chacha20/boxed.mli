@@ -4,4 +4,9 @@ val quarter_round :
 val chacha20_block : key:bytes -> counter:int32 -> nonce:bytes -> bytes
 
 val encrypt :
-  key:bytes -> counter:int32 -> nonce:bytes -> plaintext:bytes -> bytes
+  key:bytes ->
+  counter:int32 ->
+  nonce:bytes ->
+  plaintext:bytes ->
+  ciphertext:bytes ->
+  unit

@@ -76,9 +76,8 @@ let chacha20_block ~key ~counter ~nonce =
 
   result
 
-let encrypt ~key ~(counter : int32) ~nonce ~plaintext =
+let encrypt ~key ~(counter : int32) ~nonce ~plaintext ~ciphertext =
   let len = Bytes.length plaintext in
-  let ciphertext = Bytes.create len in
 
   (* positive integer division floors by default *)
   for j = 0 to (len / 64) - 1 do
@@ -102,6 +101,4 @@ let encrypt ~key ~(counter : int32) ~nonce ~plaintext =
       Bytes.set_int8 ciphertext buf_idx
         (Bytes.get_int8 plaintext buf_idx lxor Bytes.get_int8 key_stream i)
     done
-  else ();
-
-  ciphertext
+  else ()

@@ -47,8 +47,7 @@ let[@zero_alloc] inner_block (state : int32# array) : unit =
   quarter_round state 2 7 8 13;
   quarter_round state 3 4 9 14
 
-let[@zero_alloc] prepare_keystream ~counter ~final_state ~initial_state
-    ~keystream : unit =
+let[@zero_alloc] prepare_keystream ~counter ~final_state ~initial_state =
   let open Int32_u_array in
   copy_unboxed_array_16l ~src:initial_state ~dst:final_state;
   final_state.%(12) <- counter;
@@ -58,15 +57,53 @@ let[@zero_alloc] prepare_keystream ~counter ~final_state ~initial_state
     inner_block final_state
   done;
 
-  mat_add ~initial_state ~updated_state:final_state;
+  mat_add ~initial_state ~updated_state:final_state
 
-  for i = 0 to 15 do
-    Bytes.set_int32_le keystream (i * 4) (I.to_int32 final_state.%(i))
-  done
-
-let[@zero_alloc] encrypt_blocks ~key ~counter ~nonce ~plaintext ~ciphertext
-    ~initial_state ~final_state ~keystream =
+let[@zero_alloc] encrypt ~key ~counter ~nonce ~plaintext ~ciphertext =
   let open Int32_u_array in
+  let initial_state =
+    stack_
+      [|
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+      |]
+  in
+  let final_state =
+    stack_
+      [|
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+        #0l;
+      |]
+  in
+
   initial_state.%(0) <- #0x61707865l;
   initial_state.%(1) <- #0x3320646el;
   initial_state.%(2) <- #0x79622d32l;
@@ -87,13 +124,14 @@ let[@zero_alloc] encrypt_blocks ~key ~counter ~nonce ~plaintext ~ciphertext
   (* positive integer division floors by default *)
   for j = 0 to (len / 64) - 1 do
     let cur_counter_unboxed = I.add (I.of_int32 counter) (I.of_int j) in
-    prepare_keystream ~counter:cur_counter_unboxed ~final_state ~initial_state
-      ~keystream;
+    prepare_keystream ~counter:cur_counter_unboxed ~final_state ~initial_state;
 
-    for i = 0 to 63 do
-      let buf_idx = (j * 64) + i in
-      Bytes.set_int8 ciphertext buf_idx
-        (Bytes.get_int8 plaintext buf_idx lxor Bytes.get_int8 keystream i)
+    for i = 0 to 15 do
+      let buf_idx = (j * 64) + (i * 4) in
+      Bytes.set_int32_le ciphertext buf_idx
+        (Int32.logxor
+           (Bytes.get_int32_le plaintext buf_idx)
+           (I.to_int32 final_state.%(i)))
     done
   done;
 
@@ -101,22 +139,26 @@ let[@zero_alloc] encrypt_blocks ~key ~counter ~nonce ~plaintext ~ciphertext
     let j = len / 64 in
 
     let cur_counter_unboxed = I.add (I.of_int32 counter) (I.of_int j) in
-    prepare_keystream ~counter:cur_counter_unboxed ~final_state ~initial_state
-      ~keystream;
+    prepare_keystream ~counter:cur_counter_unboxed ~final_state ~initial_state;
 
-    for i = 0 to (len mod 64) - 1 do
-      let buf_idx = (j * 64) + i in
+    let remaining_bytes = len mod 64 in
+    let remaining_quads = remaining_bytes / 4 in
+    let leftover_bytes = len mod 4 in
+
+    for i = 0 to remaining_quads - 1 do
+      let buf_idx = (j * 64) + (i * 4) in
+      Bytes.set_int32_le ciphertext buf_idx
+        (Int32.logxor
+           (Bytes.get_int32_le plaintext buf_idx)
+           (I.to_int32 final_state.%(i)))
+    done;
+
+    let final_key_32 = I.to_int final_state.%(remaining_quads) in
+
+    for i = 0 to leftover_bytes - 1 do
+      let masked_key = (final_key_32 lsr (i * 8)) land 0x000000FF in
+      let buf_idx = (j * 64) + (remaining_quads * 4) + i in
       Bytes.set_int8 ciphertext buf_idx
-        (Bytes.get_int8 plaintext buf_idx lxor Bytes.get_int8 keystream i)
+        (Bytes.get_int8 plaintext buf_idx lxor masked_key)
     done)
   else ()
-
-let encrypt ~key ~counter ~nonce ~plaintext ~ciphertext =
-  let keystream = Bytes.create 64 in
-
-  let open Int32_u_array in
-  let initial_state = make 16 #0l in
-  let final_state = make 16 #0l in
-
-  encrypt_blocks ~key ~counter ~nonce ~plaintext ~ciphertext ~initial_state
-    ~final_state ~keystream

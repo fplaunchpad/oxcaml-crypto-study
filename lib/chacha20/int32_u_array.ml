@@ -1,7 +1,10 @@
-external get : int32# array -> int -> int32# = "%array_safe_get"
-external set : int32# array -> int -> int32# -> unit = "%array_safe_set"
-external ( .%() ) : int32# array -> int -> int32# = "%array_safe_get"
-external ( .%()<- ) : int32# array -> int -> int32# -> unit = "%array_safe_set"
+external get : int32# array @ local -> int -> int32# = "%array_safe_get"
+external set : int32# array @ local -> int -> int32# -> unit = "%array_safe_set"
+external ( .%() ) : int32# array @ local -> int -> int32# = "%array_safe_get"
+
+external ( .%()<- ) : int32# array @ local -> int -> int32# -> unit
+  = "%array_safe_set"
+
 external uget : int32# array -> int -> int32# = "%array_unsafe_get"
 external uset : int32# array -> int -> int32# -> unit = "%array_unsafe_set"
 external len : int32# array -> int = "%array_length"

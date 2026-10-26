@@ -1,5 +1,5 @@
 (library
   (name chacha20)
   (libraries stdlib_upstream_compatible)
-  (modules boxed scalar_unboxed int32_u_array))
+  (modules vanilla scalar_unboxed int32_u_array))
 

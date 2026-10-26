@@ -109,8 +109,7 @@ let[@zero_alloc] encrypt ~key ~counter ~nonce ~plaintext ~ciphertext =
   initial_state.%(2) <- #0x79622d32l;
   initial_state.%(3) <- #0x6b206574l;
 
-  (* TODO: Verify *)
-  (* Bytes.get_int32_le is implemented with the %caml_bytes_get32 primitive and I.of_int32 is %unbox_int32. The compiler normally removes a box immediately followed by an unbox, so there's no allocation. *)
+  (* Bytes.get_int32_le is implemented with the %caml_bytes_get32 primitive and I.of_int32 is %unbox_int32. The compiler normally removes a box immediately followed by an unbox, so there's no allocation. Verified from the emitted assembly on arm64 *)
   for i = 0 to 7 do
     initial_state.%(i + 4) <- I.of_int32 (Bytes.get_int32_le key (i * 4))
   done;

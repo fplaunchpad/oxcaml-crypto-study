@@ -9,7 +9,7 @@ let test_quarter_round () =
   let test_vecs = parse quarter_round_path in
   let v k = Int32.of_string ("0x" ^ List.assoc k test_vecs) in
   let a, b, c, d =
-    Chacha20.Boxed.quarter_round
+    Chacha20.Vanilla.quarter_round
       (v "a_in", v "b_in", v "c_in", v "d_in")
   in
   Alcotest.(check int32) "a" (v "a_out") a;
@@ -26,7 +26,7 @@ let test_block_fn () =
   let counter = Int32.of_string ("0x" ^ List.assoc "BlockCount" test_vals) in
   let expected_out = format_str (List.assoc "Out" test_vals) in
 
-  let result = Chacha20.Boxed.chacha20_block ~key ~counter ~nonce in
+  let result = Chacha20.Vanilla.chacha20_block ~key ~counter ~nonce in
   Alcotest.(check string)
     "block_function" expected_out (bytes_to_str_hex result)
 
@@ -43,7 +43,7 @@ let test_encryption () =
   let expected_ciphertext = format_str (List.assoc "Ciphertext" test_vals) in
 
   let actual_ciphertext = Bytes.create (Bytes.length plaintext) in
-  Chacha20.Boxed.encrypt ~key ~counter ~nonce ~plaintext
+  Chacha20.Vanilla.encrypt ~key ~counter ~nonce ~plaintext
     ~ciphertext:actual_ciphertext;
   Alcotest.(check string)
     "encryption" expected_ciphertext
@@ -74,7 +74,7 @@ let test_differential_libsodium_ietf_encryption () =
     ~count:1000 Harness.Chacha20_qcheck_gen.arbitrary
     (fun (key, nonce, counter, plaintext) ->
       let custom_impl_ciphertext = Bytes.create (Bytes.length plaintext) in
-      Chacha20.Boxed.encrypt ~key ~counter ~nonce ~plaintext
+      Chacha20.Vanilla.encrypt ~key ~counter ~nonce ~plaintext
         ~ciphertext:custom_impl_ciphertext;
 
       let libsodium_ciphertext =

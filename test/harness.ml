@@ -77,5 +77,35 @@ module Chacha20_qcheck_gen = struct
   let gen : (bytes * bytes * int32 * bytes) QCheck.Gen.t =
     QCheck.Gen.quad key_gen nonce_gen counter_gen plaintext_gen
 
-  let arbitrary = QCheck.make gen
+  (* Show the whole input of a failing case. A long plaintext is truncated to [max_shown]. *)
+  let max_shown = 64
+
+  let print (key, nonce, counter, plaintext) =
+    let hex = Testvector_file.bytes_to_str_hex in
+    let len = Bytes.length plaintext in
+    let shown = min len max_shown in
+    Printf.sprintf
+      "key=%s nonce=%s counter=0x%08lx plaintext_length=%d plaintext=%s%s"
+      (hex key) (hex nonce) counter len
+      (hex (Bytes.sub plaintext 0 shown))
+      (if len > shown then "..." else "")
+
+  (* Shrink only the plaintext, to a prefix of itself.
+     A shorter prefix with the same key, nonce and counter is a valid input.
+     The shrinker tries every length below [small_limit] first, then half the length, then one byte less. *)
+  let small_limit = 129
+
+  let shrink (key, nonce, counter, plaintext) : _ QCheck.Iter.t =
+   fun yield ->
+    let len = Bytes.length plaintext in
+    let prefix n = yield (key, nonce, counter, Bytes.sub plaintext 0 n) in
+    let small = min len small_limit in
+    for n = 0 to small - 1 do
+      prefix n
+    done;
+    let half = len / 2 in
+    if half >= small then prefix half;
+    if len - 1 >= small && len - 1 > half then prefix (len - 1)
+
+  let arbitrary = QCheck.make ~print ~shrink gen
 end
